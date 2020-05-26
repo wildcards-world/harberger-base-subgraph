@@ -389,15 +389,10 @@ export function handleAddToken(event: AddToken): void {
   let tokenId = event.params.tokenId;
   let txTimestamp = event.block.timestamp;
   let txHashString = event.transaction.hash.toHexString();
-
   let patronageNumerator = event.params.patronageNumerator;
-
   let wildcard = new Wildcard(tokenId.toString());
-
   let steward = Steward.bind(event.address);
-
   let txHashStr = event.transaction.hash.toHexString();
-
   handleAddTokenUtil(
     tokenId,
     txTimestamp,

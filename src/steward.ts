@@ -16,10 +16,6 @@ import {
 } from "../generated/Steward/Steward";
 import * as V2 from "./v2/steward";
 import * as NEW from "./rewrite/steward";
-export function handleAddToken(event: AddToken): void {
-  log.warning("WE ARE ADDING A TOKEN!", []);
-  V2.handleAddToken(event);
-}
 
 export function handleBuy(event: Buy): void {
   V2.handleBuy(event);
@@ -44,7 +40,8 @@ export function handleCollectPatronage(event: CollectPatronage): void {
     event.params.tokenId
   );
 }
-export function handleAddTokenV2(event: AddToken): void {
+export function handleAddToken(event: AddToken): void {
+  log.warning("WE ARE ADDING A TOKEN!", []);
   V2.handleAddToken(event);
 }
 

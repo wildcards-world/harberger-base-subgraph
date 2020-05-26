@@ -38,6 +38,25 @@ export function removeFromArrayAtIndex(
   }
 }
 
+function createNO_OWNERPatron(address: Address, txTimestamp: BigInt): Patron {
+  let addressString = address.toHexString();
+  let patron = new Patron("NO_OWNER");
+  patron.address = address;
+  patron.totalTimeHeld = BigInt.fromI32(0);
+  patron.totalContributed = BigInt.fromI32(0);
+  patron.patronTokenCostScaledNumerator = BigInt.fromI32(0);
+  patron.tokens = [];
+  patron.lastUpdated = txTimestamp;
+  patron.previouslyOwnedTokens = [];
+
+  patron.availableDeposit = BigInt.fromI32(0);
+  patron.foreclosureTime = BigInt.fromI32(0);
+  // # deposit: BigInt!
+
+  patron.save();
+  return patron;
+}
+
 // export function updateGlobalState(steward: Steward, txTimestamp: BigInt): void {
 //   let globalState = Global.load("1");
 //   globalState.totalCollectedAccurate = getTotalCollectedAccurate(steward);
@@ -263,7 +282,7 @@ export function handleAddTokenUtil(
   price.timeSet = txTimestamp;
   price.save();
 
-  let patron = Patron.load("NO_OWNER");
+  let patron = createNO_OWNERPatron(steward._address, txTimestamp);
   if (patron == null) {
     log.critical("This should definitely exist", []);
   }
