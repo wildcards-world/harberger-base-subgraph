@@ -325,16 +325,24 @@ export function handleForeclosure(event: Foreclosure): void {
 export function handleRemainingDepositUpdate(
   event: RemainingDepositUpdate
 ): void {
+  log.warning("1", []);
   let steward = Steward.bind(event.address);
+  log.warning("2", []);
   let tokenPatron = event.params.tokenPatron;
+  log.warning("3", []);
   let txTimestamp = event.block.timestamp;
+  log.warning("4", []);
   let txHashString = event.transaction.hash.toHexString();
+  log.warning("5", []);
   let patronString = tokenPatron.toHexString();
+  log.warning("6", []);
 
   // NOTE: The patron can be the steward contract in the case when the token forecloses; this can cause issues! Hence be careful and check it isn't the patron.
   // Also, the below code is totally redundant, just there for safety.
   if (patronString != event.address.toHexString()) {
+    log.warning("7", []);
     let patron = Patron.load(patronString);
+    log.warning("8", []);
     if (patron != null) {
       updateAllOfPatronsTokensLastUpdated(
         patron,
@@ -343,8 +351,10 @@ export function handleRemainingDepositUpdate(
       );
     }
   }
+  log.warning("10", []);
 
   updateAvailableDepositAndForeclosureTime(steward, tokenPatron, txTimestamp);
+  log.warning("11", []);
   recognizeStateChange(
     txHashString,
     "RemainingDepositUpdate",
@@ -352,6 +362,7 @@ export function handleRemainingDepositUpdate(
     [],
     txTimestamp
   );
+  log.warning("12", []);
   // updateGlobalState(steward, txTimestamp);
 }
 export function handleCollectPatronage(event: CollectPatronage): void {
@@ -401,12 +412,14 @@ export function handleAddToken(event: AddToken): void {
     steward,
     txHashStr
   );
+  log.warning("outer 1", []);
   recognizeStateChange(
     txHashString,
     "handleAddToken",
     // NOTE: leaving these null because they will be updated by the other tokens
-    [],
-    [],
+    ["Something"],
+    [tokenId.toString()],
     txTimestamp
   );
+  log.warning("outer 2", []);
 }

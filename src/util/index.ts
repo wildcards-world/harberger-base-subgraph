@@ -1,5 +1,4 @@
 import { Steward } from "../../generated/Steward/Steward";
-import { LoyaltyToken } from "../../generated/LoyaltyToken/LoyaltyToken";
 import { Address, BigInt, log } from "@graphprotocol/graph-ts";
 import {
   Patron,
@@ -168,24 +167,48 @@ export function updateAvailableDepositAndForeclosureTime(
   patron.save();
 }
 
+export function createEventCounter(): EventCounter {
+  let eventCounter = new EventCounter("1");
+  eventCounter.buyEventCount = BigInt.fromI32(0);
+  eventCounter.changePriceEventCount = BigInt.fromI32(0);
+  eventCounter.buyEvents = [];
+  eventCounter.stateChanges = [];
+  return eventCounter;
+}
+
 // NOTE: it is impossible for this code to return null, the compiler is just retarded!
 export function getOrInitialiseStateChange(txId: string): StateChange | null {
+  log.warning("ERROR 1", []);
+
   let stateChange = StateChange.load(txId);
 
+  log.warning("ERROR 2", []);
   if (stateChange == null) {
+    log.warning("ERROR 3", []);
     stateChange = new StateChange(txId);
+    log.warning("ERROR 4", []);
     stateChange.txEventList = [];
+    log.warning("ERROR 5", []);
     stateChange.patronChanges = [];
+    log.warning("ERROR 6", []);
     stateChange.wildcardChanges = [];
+    log.warning("ERROR 7", []);
 
     let eventCounter = EventCounter.load("1");
+    if (eventCounter == null) {
+      eventCounter = createEventCounter();
+    }
+    log.warning("ERROR 8", []);
     eventCounter.stateChanges = eventCounter.stateChanges.concat([
       stateChange.id,
     ]);
+    log.warning("ERROR 9", []);
     eventCounter.save();
+    log.warning("ERROR 10", []);
 
     return stateChange;
   } else {
+    log.warning("ERROR SIMPLE RETURN", []);
     return stateChange;
   }
 }
@@ -197,25 +220,31 @@ export function recognizeStateChange(
   changedWildcards: string[],
   txTimestamp: BigInt
 ): void {
+  log.warning("state-change 1", []);
   let stateChange = getOrInitialiseStateChange(txHash);
+  log.warning("state-change 2", []);
   stateChange.txEventList = stateChange.txEventList.concat([changeType]);
-
+  log.warning("state-change 3", []);
   for (let i = 0, len = changedPatrons.length; i < len; i++) {
+    log.warning("state-change 4", []);
     stateChange.patronChanges =
       stateChange.patronChanges.indexOf(changedPatrons[i]) === -1
         ? stateChange.patronChanges.concat([changedPatrons[i]])
         : stateChange.patronChanges;
   }
-
+  log.warning("state-change 5", []);
   for (let i = 0, len = changedWildcards.length; i < len; i++) {
+    log.warning("state-change 6", []);
     stateChange.wildcardChanges =
       stateChange.wildcardChanges.indexOf(changedWildcards[i]) === -1
         ? stateChange.wildcardChanges.concat([changedWildcards[i]])
         : stateChange.wildcardChanges;
   }
-
+  log.warning("state-change 7", []);
   stateChange.timestamp = txTimestamp;
+  log.warning("state-change 8", []);
   stateChange.save();
+  log.warning("state-change 9", []);
 }
 
 export function updateForeclosedTokens(
@@ -262,39 +291,63 @@ export function handleAddTokenUtil(
   steward: Steward,
   txHashStr: string
 ): void {
+  // log.warning("1", []);
   let tokenAddress = steward.assetToken();
+  // log.warning("2", []);
   let erc721 = Token.bind(tokenAddress);
+  // log.warning("3", []);
 
   let tokenInfo = erc721.tokenURI(tokenId);
+  // log.warning("4", []);
 
   // Entity fields can be set using simple assignments
   let tokenUri = new TokenUri(tokenId.toString());
+  // log.warning("5", []);
   tokenUri.uriString = tokenInfo;
+  // log.warning("6", []);
   tokenUri.save();
+  // log.warning("7", []);
 
   wildcard.tokenUri = tokenUri.id;
+  // log.warning("8", []);
   wildcard.tokenId = tokenId;
+  // log.warning("9", []);
   wildcard.totalCollected = BigInt.fromI32(0);
+  // log.warning("10", []);
   wildcard.timeCollected = txTimestamp;
+  // log.warning("11", []);
 
   let price = new Price(txHashStr);
+  // log.warning("12", []);
   price.price = BigInt.fromI32(0);
+  // log.warning("13", []);
   price.timeSet = txTimestamp;
+  // log.warning("14", []);
   price.save();
+  // log.warning("15", []);
 
-  let patron = createNO_OWNERPatron(steward._address, txTimestamp);
+  let patron = Patron.load("NO_OWNER");
+  // log.warning("16", []);
   if (patron == null) {
-    log.critical("This should definitely exist", []);
+    patron = createNO_OWNERPatron(steward._address, txTimestamp);
   }
+  // log.warning("17", []);
 
   wildcard.price = price.id;
+  // log.warning("18", []);
   wildcard.owner = patron.id;
+  // log.warning("19", []);
   wildcard.patronageNumerator = patronageNumerator;
+  // log.warning("20", []);
   wildcard.patronageNumeratorPriceScaled = BigInt.fromI32(0);
+  // log.warning("21", []);
   wildcard.timeAcquired = txTimestamp;
+  // log.warning("22", []);
   wildcard.previousOwners = [];
+  // log.warning("23", []);
 
   wildcard.save();
+  // log.warning("24", []);
 }
 
 export function getTokenBalance(

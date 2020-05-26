@@ -7,10 +7,6 @@ import {
 } from "../../generated/Steward/Steward";
 import { PatronNew, WildcardNew, Patron } from "../../generated/schema";
 import {
-  VitalikStewardLegacy,
-  LogBuy as LogBuyLegacy,
-} from "../../generated/VitalikStewardLegacy/VitalikStewardLegacy";
-import {
   GLOBAL_PATRONAGE_DENOMINATOR,
   NUM_SECONDS_IN_YEAR_BIG_INT,
   VITALIK_PATRONAGE_NUMERATOR,
