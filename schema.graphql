@@ -1,0 +1,153 @@
+# The idea with event counters is that a backend (or anywhere) service can watch for changes in the number of events, and respond to that.
+type EventCounter @entity {
+  id: ID! # this will have a fixed id of '1' since there will only be one place to count events.
+  buyEventCount: BigInt!
+  buyEvents: [BuyEvent!]
+  stateChanges: [StateChange]!
+  changePriceEventCount: BigInt
+}
+
+type Global @entity {
+  id: ID! # will just be '1' since only one global namespace
+  totalCollected: BigInt!
+  totalCollectedAccurate: BigInt!
+  timeLastCollected: BigInt!
+  # totalCollectedOrDue: BigInt!
+  totalCollectedOrDueAccurate: BigInt!
+  # totalTokenCostScaledNumerator: BigInt! # Used to calculate the above value
+  totalTokenCostScaledNumeratorAccurate: BigInt! # Used to calculate the above value
+}
+
+type Wildcard @entity {
+  id: ID! # Just the tokenId
+  tokenId: BigInt!
+  price: Price!
+  owner: Patron! # address
+  patronageNumerator: BigInt!
+  patronageNumeratorPriceScaled: BigInt!
+  timeAcquired: BigInt!
+  previousOwners: [PreviousPatron!]
+  priceHistory: [Price!]
+  tokenUri: TokenUri!
+  totalCollected: BigInt!
+  timeCollected: BigInt!
+}
+
+type TokenUri @entity {
+  id: ID!
+  uriString: String!
+  # -- parsing of this needs to be done on the client-side. JSON parsing still seems difficult in assemblyscript: https://github.com/AssemblyScript/assemblyscript/issues/292
+  # artist: String!
+  # name: String!
+  # type: String!
+  # ipfs: String!
+}
+
+type Price @entity {
+  id: ID!
+  price: BigInt!
+  timeSet: BigInt!
+}
+
+type PreviousPatron @entity {
+  id: ID!
+  patron: Patron!
+  timeAcquired: BigInt!
+  timeSold: BigInt!
+}
+
+type Patron @entity {
+  id: ID! # Just the address
+  address: Bytes! # address
+  lastUpdated: BigInt!
+  previouslyOwnedTokens: [Wildcard!]!
+  tokens: [Wildcard!]!
+  availableDeposit: BigInt!
+  patronTokenCostScaledNumerator: BigInt!
+  foreclosureTime: BigInt!
+  # deposit: BigInt!
+  totalContributed: BigInt!
+  totalTimeHeld: BigInt!
+}
+
+type BuyEvent @entity {
+  id: ID! # tx id
+  token: Wildcard!
+  price: Price!
+  newOwner: Patron!
+  timestamp: BigInt!
+}
+
+# For every transaction, list the changes, and stat
+type StateChange @entity {
+  id: ID! # tx
+  timestamp: BigInt!
+  txEventList: [String!]! #call event logs or something
+  patronChanges: [Patron!]!
+  wildcardChanges: [Wildcard!]!
+}
+
+type ChangePriceEvent @entity {
+  id: ID! # tx id
+  token: Wildcard!
+  price: Price!
+  timestamp: BigInt!
+}
+
+# Types for rewrite. Plan is to merge/replace the old entities when rewrite works.
+
+type PatronNew @entity {
+  id: ID! # Just the address
+  address: Bytes! # address
+  lastUpdated: BigInt!
+  # previouslyOwnedTokens: [Wildcard!]!
+  tokens: [WildcardNew!]!
+  # tokens: [Wildcard!]!
+  # availableDeposit: BigInt!
+  patronTokenCostScaledNumerator: BigInt!
+  # foreclosureTime: BigInt!
+  # deposit: BigInt!
+  totalContributed: BigInt!
+  totalTimeHeld: BigInt!
+  totalLoyaltyTokens: BigInt!
+  totalLoyaltyTokensIncludingUnRedeemed: BigInt!
+  currentBalance: BigInt!
+}
+
+type WildcardNew @entity {
+  id: ID! # Just the tokenId
+  tokenId: BigInt!
+  # price: Price!
+  owner: PatronNew! # address
+  # patronageNumerator: BigInt!
+  # patronageNumeratorPriceScaled: BigInt!
+  # timeAcquired: BigInt!
+  # previousOwners: [PreviousPatron!]
+  # priceHistory: [Price!]
+  # tokenUri: TokenUri!
+  # totalCollected: BigInt!
+  # timeCollected: BigInt!
+}
+
+type VoteStatus @entity {
+  id: ID! # <iteration>-<projectId>
+  projectVote: BigInt!
+}
+type Vote @entity {
+  id: ID! # <iteration>-<projectId>-<address>
+  voteAmount: BigInt!
+  voter: PatronNew!
+}
+type Iteration @entity {
+  id: ID! # the iteration number
+  projectVoteTallies: [VoteStatus!]
+  individualVotes: [Vote!]
+  totalVotes: BigInt!
+  winningProposal: BigInt!
+  fundsDistributed: BigInt!
+  winningVotes: BigInt!
+}
+type VoteManager @entity {
+  id: ID! # this should be a singleton. Give it a constant id of "VOTE_MANAGER"
+  currentIteration: Iteration!
+}

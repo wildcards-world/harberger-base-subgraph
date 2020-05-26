@@ -1,0 +1,77 @@
+specVersion: 0.0.2
+description: A subgraph for wildcards.world smart contracts.
+repository: https://github.com/wildcards/subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: Steward
+    network: goerli
+    source:
+      address: "0x4bE0Eab8f41c8109AA134509086Cbcb18b10C0fB"
+      abi: Steward
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - AddToken
+        - Buy
+        - PriceChange
+        - Foreclosure
+        - RemainingDepositUpdate
+        - CollectPatronage
+        - CollectLoyalty
+      abis:
+        - name: Steward
+          file: ./abis/Steward.json
+        - name: Token
+          file: ./abis/Token.json
+      eventHandlers:
+        - event: Buy(indexed uint256,indexed address,uint256)
+          handler: handleBuy
+        - event: PriceChange(indexed uint256,uint256)
+          handler: handlePriceChange
+        - event: Foreclosure(indexed address)
+          handler: handleForeclosure
+        - event: RemainingDepositUpdate(indexed address,uint256)
+          handler: handleRemainingDepositUpdate
+        - event: CollectPatronage(indexed uint256,indexed address,uint256,uint256)
+          handler: handleCollectPatronage
+        - event: AddToken(indexed uint256,uint256,uint256)
+          handler: handleAddTokenV2
+        - event: CollectLoyalty(indexed uint256,indexed address,uint256)
+          handler: handleCollectLoyalty
+      file: ./src/steward.ts
+
+  - kind: ethereum/contract
+    name: Token
+    network: goerli
+    source:
+      address: "0x48C12e1c5aBC5239FD6e2642C929E8FA8bE29999"
+      abi: Token
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.4
+      language: wasm/assemblyscript
+      entities:
+        - MinterAdded
+        - MinterRemoved
+        - Transfer
+        - Approval
+        - ApprovalForAll
+      abis:
+        - name: Token
+          file: ./abis/Token.json
+      eventHandlers:
+        - event: MinterAdded(indexed address)
+          handler: handleMinterAdded
+        - event: MinterRemoved(indexed address)
+          handler: handleMinterRemoved
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,indexed uint256)
+          handler: handleApproval
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+      file: ./src/token.ts
