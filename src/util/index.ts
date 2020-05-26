@@ -16,11 +16,6 @@ import {
   NUM_SECONDS_IN_YEAR_BIG_INT,
   AMOUNT_RAISED_BY_VITALIK_VINTAGE_CONTRACT,
 } from "../CONSTANTS";
-import {
-  getTotalOwedAccurate,
-  getTotalTokenCostScaledNumerator,
-  getTotalCollectedAccurate,
-} from "./hacky";
 import { Token } from "../../generated/Token/Token";
 
 export function minBigInt(first: BigInt, second: BigInt): BigInt {
@@ -43,30 +38,30 @@ export function removeFromArrayAtIndex(
   }
 }
 
-export function updateGlobalState(steward: Steward, txTimestamp: BigInt): void {
-  let globalState = Global.load("1");
-  globalState.totalCollectedAccurate = getTotalCollectedAccurate(steward);
-  globalState.totalTokenCostScaledNumeratorAccurate = getTotalTokenCostScaledNumerator(
-    steward
-  );
-  let totalOwed = getTotalOwedAccurate(steward);
-  globalState.totalCollectedOrDueAccurate = globalState.totalCollectedAccurate.plus(
-    totalOwed
-  );
-  // BUG!
-  // This code below is inaccurate because the `timeLastCollected` isn't correct. Should have `timeLastCalculatedCollection` as separate variable
-  // globalState.totalCollectedOrDue = globalState.totalCollectedOrDue.plus(
-  //   totalTokenCostScaledNumerator
-  //     .times(txTimestamp.minus(globalState.timeLastCollected))
-  //     .div(
-  //       steward
-  //         .patronageDenominator()
-  //         .times(BigInt.fromI32(NUM_SECONDS_IN_YEAR))
-  //     )
-  // );
-  globalState.timeLastCollected = txTimestamp;
-  globalState.save();
-}
+// export function updateGlobalState(steward: Steward, txTimestamp: BigInt): void {
+//   let globalState = Global.load("1");
+//   globalState.totalCollectedAccurate = getTotalCollectedAccurate(steward);
+//   globalState.totalTokenCostScaledNumeratorAccurate = getTotalTokenCostScaledNumerator(
+//     steward
+//   );
+//   let totalOwed = getTotalOwedAccurate(steward);
+//   globalState.totalCollectedOrDueAccurate = globalState.totalCollectedAccurate.plus(
+//     totalOwed
+//   );
+//   // BUG!
+//   // This code below is inaccurate because the `timeLastCollected` isn't correct. Should have `timeLastCalculatedCollection` as separate variable
+//   // globalState.totalCollectedOrDue = globalState.totalCollectedOrDue.plus(
+//   //   totalTokenCostScaledNumerator
+//   //     .times(txTimestamp.minus(globalState.timeLastCollected))
+//   //     .div(
+//   //       steward
+//   //         .patronageDenominator()
+//   //         .times(BigInt.fromI32(NUM_SECONDS_IN_YEAR))
+//   //     )
+//   // );
+//   globalState.timeLastCollected = txTimestamp;
+//   globalState.save();
+// }
 
 export function getForeclosureTimeSafe(
   steward: Steward,

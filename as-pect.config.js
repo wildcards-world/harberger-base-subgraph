@@ -14,7 +14,7 @@ module.exports = {
     /** To output a wat file, uncomment the following line. */
     // "--textFile": ["output.wat"],
     /** A runtime must be provided here. */
-    "--runtime": ["full"] // Acceptable values are: full, half, stub (arena), and none
+    "--runtime": ["full"], // Acceptable values are: full, half, stub (arena), and none
   },
   /**
    * A set of regexp that will disclude source files from testing.
@@ -43,7 +43,7 @@ module.exports = {
     /** Report the maximum run time in milliseconds for every test. */
     reportMax: false,
     /** Report the minimum run time in milliseconds for every test. */
-    reportMin: false
+    reportMin: false,
   },
   /**
    * Add a custom reporter here if you want one. The following example is in typescript.
@@ -65,5 +65,5 @@ module.exports = {
   /**
    * Specify if the binary wasm file should be written to the file system.
    */
-  outputBinary: false
+  outputBinary: false,
 };
