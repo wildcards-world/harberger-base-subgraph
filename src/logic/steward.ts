@@ -118,6 +118,21 @@ export function handleBuy(event: Buy): void {
 
   // Phase 2: calculate new values.
 
+  /*
+  VALUES WE NEED FROM THIS PHASE:
+
+  Patron (both new and old):
+  - lastUpdated: BigInt!
+  - previouslyOwnedTokens: [Wildcard!]!
+  - tokens: [Wildcard!]!
+  - availableDeposit: BigInt!
+  - patronTokenCostScaledNumerator: BigInt!
+  - foreclosureTime: BigInt!
+  # deposit: BigInt!
+  - totalContributed: BigInt!
+  - totalTimeHeld: BigInt!
+  */
+
   // Now even if the patron puts in extra deposit when they buy a new token this will foreclose their old tokens.
   let heldUntilNewPatron = txTimestamp; //minBigInt(patron.foreclosureTime, txTimestamp); // TODO: use min with foreclosureTime
   let heldUntilPreviousPatron = txTimestamp; //minBigInt(patron.foreclosureTime, txTimestamp); // TODO: use min with foreclosureTime
@@ -181,9 +196,9 @@ export function handleBuy(event: Buy): void {
 
   let heldUntil = minBigInt(patron.foreclosureTime, txTimestamp);
   let timeSinceLastUpdate = heldUntil.minus(patron.lastUpdated);
-  patron.totalTimeHeld = patron.totalTimeHeld.plus(
-    timeSinceLastUpdate.times(BigInt.fromI32(patron.tokens.length))
-  );
+  // patron.totalTimeHeld = patron.totalTimeHeld.plus(
+  //   timeSinceLastUpdate.times(BigInt.fromI32(patron.tokens.length))
+  // );
   patron.totalContributed = patron.totalContributed.plus(
     patron.patronTokenCostScaledNumerator
       .times(timeSinceLastUpdate)
@@ -210,11 +225,11 @@ export function handleBuy(event: Buy): void {
   // let itemIndex = patronOld.tokens.indexOf(wildcard.id);
   if (patronOld.id != "NO_OWNER") {
     let timeSinceLastUpdateOldPatron = txTimestamp.minus(patron.lastUpdated);
-    patronOld.totalTimeHeld = patron.totalTimeHeld.plus(
-      timeSinceLastUpdateOldPatron.times(
-        BigInt.fromI32(patronOld.tokens.length)
-      )
-    );
+    // patronOld.totalTimeHeld = patron.totalTimeHeld.plus(
+    //   timeSinceLastUpdateOldPatron.times(
+    //     BigInt.fromI32(patronOld.tokens.length)
+    //   )
+    // );
     patronOld.totalContributed = patronOld.totalContributed.plus(
       patronOld.patronTokenCostScaledNumerator
         .times(timeSinceLastUpdateOldPatron)
@@ -305,14 +320,14 @@ export function handleBuy(event: Buy): void {
   // Phase 3:
   patron.lastUpdated = timePatronLastUpdated;
   patron.totalTimeHeld = newPatronTotalTimeHeld;
-  patron.tokens = newPatronTokenArray;
+  // patron.tokens = newPatronTokenArray;
   patron.patronTokenCostScaledNumerator = newPatronTokenCostScaledNumerator;
   patron.totalContributed = newPatronTotalContributed;
   patron.save();
 
   patronOld.lastUpdated = timePatronOldLastUpdated;
   patronOld.totalTimeHeld = oldPatronTotalTimeHeld;
-  patronOld.tokens = oldPatronTokenArray;
+  // patronOld.tokens = oldPatronTokenArray;
   patronOld.patronTokenCostScaledNumerator = oldPatronTokenCostScaledNumerator;
   patronOld.totalContributed = oldPatronTotalContributed;
   patronOld.save();
