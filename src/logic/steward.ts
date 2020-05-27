@@ -44,22 +44,54 @@ import {
 } from "../CONSTANTS";
 
 export function handleBuy(event: Buy): void {
+  // PART 1: reading and getting values.
   let owner = event.params.owner;
-  let tokenIdBigInt = event.params.tokenId;
-  let tokenIdString = tokenIdBigInt.toString();
   let ownerString = owner.toHexString();
-  let txHashString = event.transaction.hash.toHexString();
   let txTimestamp = event.block.timestamp;
 
   let steward = Steward.bind(event.address);
+  let tokenIdBigInt = event.params.tokenId;
+  let tokenIdString = tokenIdBigInt.toString();
+
+  // let patron = PatronNew.load(ownerString);
+  // if (patron == null) {
+  //   patron = createDefaultPatron(owner, txTimestamp);
+  // }
 
   let wildcard = Wildcard.load(tokenIdString);
-
   if (wildcard == null) {
     log.critical("Wildcard didn't exist with id: {} - THIS IS A FATAL ERROR", [
       tokenIdString,
     ]);
+    // wildcard = createWildcardIfDoesntExist(tokenIdBigInt);
   }
+
+  let previousTokenOwner = wildcard.owner;
+  let patronOld = Patron.load(previousTokenOwner);
+  if (patronOld == null) {
+    log.critical("Patron didn't exist with id: {} - THIS IS A FATAL ERROR", [
+      previousTokenOwner,
+    ]);
+    // patronOld = createNO_OWNERPatron(owner, txTimestamp);
+  }
+
+  /// OTHER CODE
+  // let owner = event.params.owner;
+  // let tokenIdBigInt = event.params.tokenId;
+  // let tokenIdString = tokenIdBigInt.toString();
+  // let ownerString = owner.toHexString();
+  let txHashString = event.transaction.hash.toHexString();
+  // let txTimestamp = event.block.timestamp;
+
+  // let steward = Steward.bind(event.address);
+
+  // let wildcard = Wildcard.load(tokenIdString);
+
+  // if (wildcard == null) {
+  //   log.critical("Wildcard didn't exist with id: {} - THIS IS A FATAL ERROR", [
+  //     tokenIdString,
+  //   ]);
+  // }
 
   let previousTimeWildcardWasAcquired = wildcard.timeAcquired;
 
@@ -72,7 +104,7 @@ export function handleBuy(event: Buy): void {
   let previousTokenOwnerString = wildcard.owner;
 
   let patron = Patron.load(ownerString);
-  let patronOld = Patron.load(previousTokenOwnerString);
+  // let patronOld = Patron.load(previousTokenOwnerString);
   if (patron == null) {
     patron = new Patron(ownerString);
     patron.address = owner;
@@ -83,6 +115,69 @@ export function handleBuy(event: Buy): void {
     patron.lastUpdated = txTimestamp;
     patron.foreclosureTime = txTimestamp;
   }
+
+  // Phase 2: calculate new values.
+
+  // Now even if the patron puts in extra deposit when they buy a new token this will foreclose their old tokens.
+  let heldUntilNewPatron = txTimestamp; //minBigInt(patron.foreclosureTime, txTimestamp); // TODO: use min with foreclosureTime
+  let heldUntilPreviousPatron = txTimestamp; //minBigInt(patron.foreclosureTime, txTimestamp); // TODO: use min with foreclosureTime
+
+  let timeSinceLastUpdatePatron = heldUntilNewPatron.minus(patron.lastUpdated);
+  let timeSinceLastUpdatePreviousPatron = heldUntilPreviousPatron.minus(
+    patronOld.lastUpdated
+  );
+
+  let newPatronTotalTimeHeld =
+    patron.id != "NO_OWNER"
+      ? patron.totalTimeHeld.plus(
+          timeSinceLastUpdatePatron.times(BigInt.fromI32(patron.tokens.length))
+        )
+      : BigInt.fromI32(0);
+  let oldPatronTotalTimeHeld =
+    patronOld.id != "NO_OWNER"
+      ? patronOld.totalTimeHeld.plus(
+          timeSinceLastUpdatePreviousPatron.times(
+            BigInt.fromI32(patronOld.tokens.length)
+          )
+        )
+      : BigInt.fromI32(0);
+
+  let newPatronTotalContributed =
+    patronOld.id != "NO_OWNER"
+      ? patron.totalContributed.plus(
+          patron.patronTokenCostScaledNumerator
+            .times(timeSinceLastUpdatePatron)
+            .div(GLOBAL_PATRONAGE_DENOMINATOR)
+            .div(NUM_SECONDS_IN_YEAR_BIG_INT)
+        )
+      : BigInt.fromI32(0);
+  let newPatronTokenCostScaledNumerator = steward.totalPatronOwnedTokenCost(
+    owner
+  );
+  let oldPatronTotalContributed =
+    patronOld.id != "NO_OWNER"
+      ? patronOld.totalContributed.plus(
+          patronOld.patronTokenCostScaledNumerator
+            .times(timeSinceLastUpdatePatron)
+            .div(GLOBAL_PATRONAGE_DENOMINATOR)
+            .div(NUM_SECONDS_IN_YEAR_BIG_INT)
+        )
+      : BigInt.fromI32(0);
+
+  let oldPatronTokenCostScaledNumerator = steward.totalPatronOwnedTokenCost(
+    owner
+  );
+
+  let newPatronTokenArray = patron.tokens.concat([wildcard.id]);
+  let itemIndex = patronOld.tokens.indexOf(wildcard.id);
+  let oldPatronTokenArray = removeFromArrayAtIndex(patronOld.tokens, itemIndex);
+
+  let timePatronLastUpdated = steward.timeLastCollectedPatron(owner);
+  let timePatronOldLastUpdated = steward.timeLastCollectedPatron(
+    patronOld.address as Address
+  );
+
+  /// Previous phase 2
 
   let heldUntil = minBigInt(patron.foreclosureTime, txTimestamp);
   let timeSinceLastUpdate = heldUntil.minus(patron.lastUpdated);
@@ -112,7 +207,7 @@ export function handleBuy(event: Buy): void {
     patron.tokens.indexOf(wildcard.id) === -1 // In theory this should ALWAYS be false.
       ? patron.tokens.concat([wildcard.id])
       : patron.tokens;
-  let itemIndex = patronOld.tokens.indexOf(wildcard.id);
+  // let itemIndex = patronOld.tokens.indexOf(wildcard.id);
   if (patronOld.id != "NO_OWNER") {
     let timeSinceLastUpdateOldPatron = txTimestamp.minus(patron.lastUpdated);
     patronOld.totalTimeHeld = patron.totalTimeHeld.plus(
@@ -206,6 +301,24 @@ export function handleBuy(event: Buy): void {
   );
   eventCounter.buyEvents = eventCounter.buyEvents.concat([buyEvent.id]);
   eventCounter.save();
+
+  // Phase 3:
+  patron.lastUpdated = timePatronLastUpdated;
+  patron.totalTimeHeld = newPatronTotalTimeHeld;
+  patron.tokens = newPatronTokenArray;
+  patron.patronTokenCostScaledNumerator = newPatronTokenCostScaledNumerator;
+  patron.totalContributed = newPatronTotalContributed;
+  patron.save();
+
+  patronOld.lastUpdated = timePatronOldLastUpdated;
+  patronOld.totalTimeHeld = oldPatronTotalTimeHeld;
+  patronOld.tokens = oldPatronTokenArray;
+  patronOld.patronTokenCostScaledNumerator = oldPatronTokenCostScaledNumerator;
+  patronOld.totalContributed = oldPatronTotalContributed;
+  patronOld.save();
+
+  wildcard.owner = ownerString;
+  wildcard.save();
 }
 
 export function handlePriceChange(event: PriceChange): void {
