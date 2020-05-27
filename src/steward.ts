@@ -46,5 +46,5 @@ export function handleAddToken(event: AddToken): void {
 }
 
 export function handleCollectLoyalty(event: CollectLoyalty): void {
-  NEW.handleCollectLoyalty(event);
+  // NEW.handleCollectLoyalty(event);
 }
