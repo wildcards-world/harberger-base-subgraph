@@ -14,25 +14,25 @@ import {
   Steward,
   CollectLoyalty,
 } from "../generated/Steward/Steward";
-import * as V2 from "./v2/steward";
+import * as lib from "./logic/steward";
 import * as NEW from "./rewrite/steward";
 
 export function handleBuy(event: Buy): void {
-  V2.handleBuy(event);
+  lib.handleBuy(event);
 }
 export function handlePriceChange(event: PriceChange): void {
-  V2.handlePriceChange(event);
+  lib.handlePriceChange(event);
 }
 export function handleForeclosure(event: Foreclosure): void {
-  V2.handleForeclosure(event);
+  lib.handleForeclosure(event);
 }
 export function handleRemainingDepositUpdate(
   event: RemainingDepositUpdate
 ): void {
-  V2.handleRemainingDepositUpdate(event);
+  lib.handleRemainingDepositUpdate(event);
 }
 export function handleCollectPatronage(event: CollectPatronage): void {
-  V2.handleCollectPatronage(event);
+  lib.handleCollectPatronage(event);
   NEW.genericUpdateTimeHeld(
     event.params.patron,
     event.block.timestamp,
@@ -42,7 +42,7 @@ export function handleCollectPatronage(event: CollectPatronage): void {
 }
 export function handleAddToken(event: AddToken): void {
   log.warning("WE ARE ADDING A TOKEN!", []);
-  V2.handleAddToken(event);
+  lib.handleAddToken(event);
 }
 
 export function handleCollectLoyalty(event: CollectLoyalty): void {

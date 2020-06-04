@@ -106,7 +106,6 @@ type PatronNew @entity {
   # availableDeposit: BigInt!
   patronTokenCostScaledNumerator: BigInt!
   # foreclosureTime: BigInt!
-  # deposit: BigInt!
   totalContributed: BigInt!
   totalTimeHeld: BigInt!
   totalLoyaltyTokens: BigInt!
