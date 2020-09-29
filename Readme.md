@@ -1,6 +1,8 @@
 # Subgraph for harberger-tax-contracts
 
-This is a subgraph to allow useful queries of data about wildcards from: https://thegraph.com/explorer/subgraph/wild-cards/wildcards
+This is a subgraph to allow useful queries of data about your harberger tax contracts.
+
+For more details on how to integrate this see [this article](https://dev.to/wildcards/build-your-first-harberger-tax-app-part-1-3gdd).
 
 ### Notes for devolopment:
 
